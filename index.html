@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<title>WALHALLA</title>
+
+<style>
+body{
+    margin:0;
+    font-family: Arial, Helvetica, sans-serif;
+    color:white;
+    background: url("walhalla.png") no-repeat center center fixed;
+    background-size: cover;
+}
+
+.overlay{
+    background: rgba(0,0,0,0.85);
+    min-height:100vh;
+}
+
+/* LOGIN */
+
+.login{
+    text-align:center;
+    padding-top:120px;
+}
+
+.login h1{
+    font-size:40px;
+    color:#ff8c00;
+    text-shadow:0 0 20px orange;
+}
+
+input{
+    padding:10px;
+    margin:8px;
+    border:none;
+    border-radius:8px;
+    width:220px;
+}
+
+button{
+    padding:10px 18px;
+    border:none;
+    border-radius:8px;
+    font-weight:bold;
+    cursor:pointer;
+    background: linear-gradient(45deg,#ff5e00,#ff0000);
+    color:white;
+    box-shadow:0 0 10px red;
+}
+
+/* PAINEL */
+
+.panel{
+    display:none;
+    padding:20px;
+}
+
+.top{
+    text-align:center;
+}
+
+.top img{
+    width:140px;
+    filter: drop-shadow(0 0 15px orange);
+}
+
+.top h1{
+    color:#ff8c00;
+    text-shadow:0 0 20px orange;
+}
+
+.member{
+    background:rgba(0,0,0,0.7);
+    padding:12px;
+    margin:10px;
+    border-radius:10px;
+    box-shadow:0 0 10px black;
+}
+
+.bolinha{
+    width:22px;
+    height:22px;
+    border-radius:50%;
+    display:inline-block;
+    margin:4px;
+    cursor:pointer;
+}
+
+.verde{
+    background:lime;
+    box-shadow:0 0 10px lime;
+}
+
+.vermelho{
+    background:red;
+    box-shadow:0 0 10px red;
+}
+</style>
+</head>
+
+<body>
+<div class="overlay">
+
+<!-- LOGIN -->
+<div id="login" class="login">
+    <h1>WALHALLA</h1>
+    <input id="user" placeholder="Usuário"><br>
+    <input id="pass" type="password" placeholder="Senha"><br>
+    <button onclick="login()">Entrar</button>
+</div>
+
+<!-- PAINEL -->
+<div id="panel" class="panel">
+
+<div class="top">
+    <img src="walhalla.png">
+    <h1>WALHALLA</h1>
+    <h3 id="cargo"></h3>
+</div>
+
+<div id="admin">
+    <input id="nick" placeholder="Nick">
+    <input id="id" placeholder="ID">
+    <input id="phone" placeholder="Telefone">
+    <button onclick="add()">Adicionar</button>
+</div>
+
+<div id="lista"></div>
+
+</div>
+</div>
+
+<script>
+
+/* USUÁRIOS */
+const users={
+"Diegoy":{pass:"Walhalla@2026",role:"Dono"},
+"LiderWal":{pass:"Lider@123",role:"Líder"},
+"CoWal":{pass:"Co@123",role:"Co-líder"}
+};
+
+let atual=null;
+let membros=JSON.parse(localStorage.getItem("walhalla"))||[];
+
+/* LOGIN */
+function login(){
+let u=document.getElementById("user").value;
+let p=document.getElementById("pass").value;
+
+if(users[u] && users[u].pass===p){
+atual=users[u];
+document.getElementById("login").style.display="none";
+document.getElementById("panel").style.display="block";
+document.getElementById("cargo").innerText="Cargo: "+atual.role;
+render();
+}else{
+alert("Login inválido");
+}
+}
+
+/* SALVAR */
+function save(){
+localStorage.setItem("walhalla",JSON.stringify(membros));
+}
+
+/* ADICIONAR */
+function add(){
+if(atual.role==="Co-líder"){
+alert("Sem permissão");
+return;
+}
+
+let n=document.getElementById("nick").value;
+let i=document.getElementById("id").value;
+let t=document.getElementById("phone").value;
+
+if(!n) return;
+
+membros.push({nick:n,id:i,phone:t,p:Array(10).fill(true)});
+save();
+render();
+}
+
+/* RENDER */
+function render(){
+let div=document.getElementById("lista");
+div.innerHTML="";
+
+membros.forEach((m,idx)=>{
+
+let box=document.createElement("div");
+box.className="member";
+
+let title=document.createElement("h3");
+title.innerText=m.nick;
+
+let detalhes=document.createElement("div");
+detalhes.style.display="none";
+
+title.onclick=()=>{
+detalhes.style.display=detalhes.style.display==="none"?"block":"none";
+};
+
+detalhes.innerHTML+=`ID: ${m.id}<br>Tel: ${m.phone}<br>`;
+
+m.p.forEach((v,i)=>{
+let b=document.createElement("div");
+b.className="bolinha "+(v?"verde":"vermelho");
+
+b.onclick=()=>{
+m.p[i]=false;
+save();
+render();
+};
+
+detalhes.appendChild(b);
+});
+
+if(atual.role!=="Co-líder"){
+let r=document.createElement("button");
+r.innerText="Remover";
+r.onclick=()=>{
+membros.splice(idx,1);
+save();
+render();
+};
+detalhes.appendChild(document.createElement("br"));
+detalhes.appendChild(r);
+}
+
+box.appendChild(title);
+box.appendChild(detalhes);
+div.appendChild(box);
+});
+}
+
+</script>
+
+</body>
+</html>
